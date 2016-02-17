@@ -1,2 +1,2 @@
-# file deployed by ansible
 deb http://security.debian.org/ wheezy/updates main contrib non-free
+
