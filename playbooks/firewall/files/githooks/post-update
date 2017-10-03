@@ -1,0 +1,20 @@
+#!/bin/bash
+
+NAME="hooks/post-update"
+UNAME=$(uname -n)
+
+info()
+{
+	echo "${UNAME} ${NAME} $1 ..."
+}
+
+info "ensuring right permission on the git repo"
+sudo chown -R root:git /srv/git/@gitrepo@.git --
+sudo chmod -R g+w /srv/git/@gitrepo@.git --
+
+info "mirroring from @internal_name@ to @partner_name@"
+sudo -u git git push --mirror -u git@@partner_name@:/srv/git/@gitrepo@.git
+
+#info "mirroring to a git web interface"
+#sudo -u git git push --mirror -u git@git.example.com:@gitrepo@
+

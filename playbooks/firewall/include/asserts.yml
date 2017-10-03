@@ -1,0 +1,23 @@
+---
+- name: "checking prerequisites: asserts"
+  assert:
+    that:
+      - "ansible_distribution == 'Debian'"
+      - "ansible_distribution_major_version == '9'"
+      - "internal_iface != ''"
+      - "internal_iface in ansible_interfaces"
+      - "internal_ip != ''"
+      - "internal_ip | ipaddr"
+      - "internal_ip in ansible_all_ipv4_addresses"
+      - "partner_ip != ''"
+      - "partner_ip | ipaddr"
+      - "partner_ip not in ansible_all_ipv4_addresses"
+      - "internal_name == ansible_hostname"
+      - "partner_name != ''"
+      - "partner_name != ansible_hostname"
+      - "internal_nodeid != ''"
+      - "partner_nodeid != ''"
+      - "ulogd != ''"
+      - "gitrepo != ''"
+      - "ulog_nl_buf_size != ''"
+      - "ulog_nl_buf_max_size != ''"

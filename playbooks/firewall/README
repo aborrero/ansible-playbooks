@@ -1,0 +1,3 @@
+Run as follow:
+
+ % ansible-playbook -i hosts.cfg firewall.yml

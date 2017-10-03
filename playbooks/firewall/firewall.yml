@@ -1,0 +1,132 @@
+--
+- name: firewall model configuration
+  hosts: fw
+  become: yes
+  become_method: sudo
+  vars:
+     nftables_service_file: files/systemd/nftables.service
+     conntrackd_service_file: files/systemd/conntrackd.service
+     conntrackd_sync_service_file: files/systemd/conntrackd_sync.service
+     conntrackd_conf_file: files/conntrackd.conf
+     corosync_conf_file: files/corosync.conf
+     corosync_authkey_file: files/authkey
+     sysctl_dst_file: /etc/sysctl.d/firewall.conf
+     modules_dst_file: /etc/modules-load.d/firewall.conf
+     ulogd_conf_file: files/ulogd.conf
+     hook_update: files/githooks/update
+     hook_post_receive: files/githooks/post-receive
+     hook_post_update: files/githooks/post-update
+
+  tasks:
+     #
+     # prerequisites
+     #
+     - include: include/asserts.yml
+
+     #
+     # packages installation
+     #
+     - name: "install Debian packages"
+       apt: name={{item}} state=latest update_cache=yes
+       with_items:
+         - nftables
+         - git
+         - tcpdump
+         - htop
+         - strace
+         - rsync
+         - ulogd2
+         - corosync
+         - pacemaker
+         - pacemaker-cli-utils
+         - crmsh
+         - conntrackd
+         - conntrack
+
+     #
+     # nftables managed with git
+     #
+     - name: "create /etc/nftables.d/"
+       file: path=/etc/nftables.d/ state=directory mode=0755
+     - name: "create /srv/git/{{gitrepo}}.git/"
+       file: path=/srv/git/{{gitrepo}}.git state=directory mode=0755
+     - name: "git init --bare /srv/git/{{gitrepo}}.git"
+       shell: "git init --bare /srv/git/{{gitrepo}}.git"
+     - name: "cleanup unused git hooks /srv/git/{{gitrepo}}.git/hooks/*"
+       file: path=/srv/git/{{gitrepo}}.git/hooks state="{{item}}"
+       with_items:
+         - absent
+         - directory
+     - name: "copy git hook update"
+       copy: src={{hook_update}} dest="/srv/git/{{gitrepo}}.git/hooks/update" mode=0755
+     - name: "copy git hook post-receive"
+       copy: src={{hook_post_receive}} dest="/srv/git/{{gitrepo}}.git/hooks/post-receive" mode=0755
+     - name: "copy git hook post-update"
+       copy: src={{hook_post_update}} dest="/srv/git/{{gitrepo}}.git/hooks/post-update" mode=0755
+     - include: include/configure_githooks.yml
+     - name: "copy /etc/systemd/system/nftables.service"
+       copy: src="{{nftables_service_file}}" dest=/etc/systemd/system/nftables.service owner=root group=root mode=0644
+
+     #
+     # ulogd
+     #
+     - name: "copy /etc/ulogd.conf"
+       copy: src={{ulogd_conf_file}} dest=/etc/ulogd.conf owner=root group=root mode=0644
+     - name: "modifications to /etc/ulogd.conf"
+       include: include/configure_ulogd.yml
+
+     #
+     # corosync/pacemaker settings
+     #
+     - name: "copy /etc/corosync/corosync.conf"
+       copy: src={{corosync_conf_file}} dest=/etc/corosync/corosync.conf owner=root group=root mode=0644
+     - include: include/configure_corosync.yml
+     - name: "copy corosync authkey"
+       copy: src={{corosync_authkey_file}} dest=/etc/corosync/authkey owner=root group=root mode=0400
+
+     #
+     # kernel configs
+     #
+     - name: "modprobe nf_conntrack"
+       modprobe: name=nf_conntrack state=present
+     - name: "modprobe nfnetlink_log"
+       modprobe: name=nfnetlink_log state=present
+     - name: "nf_conntrack in {{modules_dst_file}}"
+       lineinfile: line='nf_conntrack' dest="{{modules_dst_file}}" state=present create=yes
+     - name: "nfnetlink_log {{modules_dst_file}}"
+       lineinfile: line='nfnetlink_log' dest="{{modules_dst_file}}" state=present create=yes
+     - name: "cleanup {{sysctl_dst_file}}"
+       file: path="{{sysctl_dst_file}}" state="{{item}}"
+       with_items:
+         - absent
+         - touch
+     - include: include/sysctl.yml key="{{item.key}}" value="{{item.value}}" file="{{sysctl_dst_file}}"
+       with_dict: "{{sysctl}}"
+
+     #
+     # conntrackd
+     #
+     - name: "copy /etc/conntrackd/conntrackd.conf"
+       copy: src={{conntrackd_conf_file}} dest=/etc/conntrackd/conntrackd.conf owner=root group=root mode=0644
+     - name: "modifications to /etc/conntrackd.conf"
+       include: include/configure_conntrackd.yml
+     - name: "copy /etc/systemd/system/conntrackd.service"
+       copy: src={{conntrackd_service_file}} dest=/etc/systemd/system/conntrackd.service owner=root group=root mode=0644
+     - name: "copy /etc/systemd/system/conntrackd_sync.service"
+       copy: src={{conntrackd_sync_service_file}} dest=/etc/systemd/system/conntrackd_sync.service owner=root group=root mode=0644
+
+     #
+     # systemd
+     #
+     - name: "reload systemd"
+       shell: /bin/systemctl daemon-reload
+     - name: "restart conntrackd.service"
+       systemd: name=conntrackd.service state=restarted daemon_reload=yes
+     - name: "restart conntrackd_sync.service"
+       systemd: name=conntrackd_sync.service state=restarted daemon_reload=yes
+     - name: "restart corosync.service"
+       systemd: name=corosync.service state=restarted
+     - name: "restart pacemaker.service"
+       systemd: name=pacemaker.service state=restarted
+     - name: "restart ulogd2.service"
+       systemd: name=ulogd2.service state=restarted daemon_reload=yes

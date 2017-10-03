@@ -1,0 +1,7 @@
+---
+- name: "replace @internal_iface@ in /etc/conntrackd/conntrackd.conf"
+  replace: dest=/etc/conntrackd/conntrackd.conf regexp='@internal_iface@' replace="{{internal_iface}}" backup=yes
+- name: "replace @internal_ip@ with /etc/conntrackd/conntrackd.conf"
+  replace: dest=/etc/conntrackd/conntrackd.conf regexp='@internal_ip@' replace="{{internal_ip}}"
+- name: "replace @partner_ip@ with /etc/conntrackd/conntrackd.conf"
+  replace: dest=/etc/conntrackd/conntrackd.conf regexp='@partner_ip@' replace="{{partner_ip}}"

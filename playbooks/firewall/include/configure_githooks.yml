@@ -1,0 +1,7 @@
+---
+- name: "replace @internal_name@ in /srv/git/{{gitrepo}}.git/hooks/post-update"
+  replace: dest=/srv/git/{{gitrepo}}.git/hooks/post-update regexp='@internal_name@' replace="{{internal_name}}"
+- name: "replace @partner_name@ in /srv/git/{{gitrepo}}.git/hooks/post-update"
+  replace: dest=/srv/git/{{gitrepo}}.git/hooks/post-update regexp='@partner_name@' replace="{{partner_name}}"
+- name: "replace @gitrepo@ in /srv/git/{{gitrepo}}.git/hooks/post-update"
+  replace: dest=/srv/git/{{gitrepo}}.git/hooks/post-update regexp='@gitrepo@' replace="{{gitrepo}}"

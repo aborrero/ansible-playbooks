@@ -1,0 +1,13 @@
+---
+- name: "replace @internal_ip@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@internal_ip@' replace="{{internal_ip}}" backup=yes
+- name: "replace @partner_ip@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@partner_ip@' replace="{{partner_ip}}"
+- name: "replace @internal_name@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@internal_name@' replace="{{internal_name}}"
+- name: "replace @partner_name@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@partner_name@' replace="{{partner_name}}"
+- name: "replace @internal_nodeid@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@internal_nodeid@' replace="{{internal_nodeid}}"
+- name: "replace @partner_nodeid@ in /etc/corosync/corosync.conf"
+  replace: dest=/etc/corosync/corosync.conf regexp='@partner_nodeid@' replace="{{partner_nodeid}}"

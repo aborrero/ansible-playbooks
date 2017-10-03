@@ -1,0 +1,19 @@
+[Unit]
+Description=Conntrack Daemon
+After=network-online.target
+Requires=network-online.target
+After=networking.service
+Requires=networking.service
+ 
+[Service]
+Type=notify
+NotifyAccess=all
+ExecStartPre=-/bin/rm -f /var/lock/conntrackd.lock
+ExecStart=/usr/sbin/conntrackd -C /etc/conntrackd/conntrackd.conf
+ProtectSystem=full
+ProtectHome=true
+WatchdogSec=10
+Restart=on-failure
+ 
+[Install]
+WantedBy=multi-user.target

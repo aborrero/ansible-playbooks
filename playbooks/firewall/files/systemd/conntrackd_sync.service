@@ -1,0 +1,14 @@
+[Unit]
+Description=sync conntrackd against other node
+After=conntrackd.service
+Requires=conntrackd.service
+ 
+[Service]
+Type=oneshot
+StandardInput=null
+ProtectSystem=full
+ProtectHome=true
+ExecStart=/usr/sbin/conntrackd -n
+ 
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+---
+- name: "add netlink stack to /etc/ulogd.conf"
+  lineinfile:
+    line='stack=log{{item.value.id}}:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu{{item.value.id}}:LOGEMU'
+    dest=/etc/ulogd.conf
+    state=present
+  with_dict: "{{ ulogd }}"
+
+- name: "add netlink I/O configuration to /etc/ulogd.conf"
+  blockinfile:
+    dest: /etc/ulogd.conf
+    block: |
+      [log{{item.value.id}}]
+      group={{item.value.id}}
+      netlink_socket_buffer_size={{ulog_nl_buf_size}}
+      netlink_socket_buffer_maxsize={{ulog_nl_buf_max_size}}
+
+      [emu{{item.value.id}}]
+      file="{{item.value.logfile}}"
+      sync=1
+
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{item.value.id}}"
+  with_dict: "{{ ulogd }}"
+

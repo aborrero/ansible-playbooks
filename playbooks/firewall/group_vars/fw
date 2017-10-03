@@ -1,0 +1,22 @@
+---
+gitrepo: fw-nft
+ulog_nl_buf_size: 1000000
+ulog_nl_buf_max_size: 10000000
+ulogd:
+  vlan0:
+    id: 0
+    logfile: /var/log/ulog/local.log
+  vlan1:
+    id: 1
+    logfile: /var/log/ulog/vlan1.log
+  vlan5:
+    id: 5
+    logfile: /var/log/ulog/vlan5.log
+sysctl:
+  vm.swappiness: 5
+  net.ipv4.ip_forward: 1
+  net.ipv6.conf.all.forwarding: 1
+  net.nf_conntrack_max: 8388208
+  net.netfilter.nf_conntrack_tcp_be_liberal: 1
+  net.netfilter.nf_conntrack_tcp_loose: 1
+  net.netfilter.nf_conntrack_log_invalid: 255
